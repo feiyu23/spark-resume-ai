@@ -33,13 +33,17 @@ yarn add @ozsparkhub/resume-ai-toolkit
 import { parseResume, scoreResume } from '@ozsparkhub/resume-ai-toolkit';
 
 // Parse a resume
-const resumeText = await parseResume('./resume.pdf');
+const result = await parseResume('./resume.pdf');
 
-// Score against a job description
-const score = await scoreResume(resumeText, jobDescription);
+if (result.success) {
+  // Score against a job description
+  const jobDescription = 'Looking for JavaScript developer with React, Node.js, AWS experience...';
+  const score = scoreResume(result.text, jobDescription);
 
-console.log(`ATS Score: ${score.overall}/100`);
-console.log(`Missing keywords: ${score.missingKeywords.join(', ')}`);
+  console.log(`ATS Score: ${score.overall}/100`);
+  console.log(`Keyword Match: ${score.breakdown.keywordMatch}/100`);
+  console.log(`Missing keywords: ${score.keywords.missing.slice(0, 5).join(', ')}`);
+}
 ```
 
 ## 📊 What's Included (Open Source)
