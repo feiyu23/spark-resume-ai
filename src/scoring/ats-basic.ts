@@ -200,6 +200,103 @@ export class ATSScorer {
       suggestions.push('Start bullet points with strong action verbs (managed, developed, led, etc.)');
     }
 
+    // 1. Check for sensitive personal information (DOB, Gender, Marital Status) - Discouraged in AU
+    const sensitiveRegexes = [
+      { pattern: /\b(?:date of birth|dob|d\.o\.b\.|birthday|born\s*:\s*\d{4})\b/i, label: 'date of birth/age' },
+      { pattern: /\b(?:marital status|married|single|divorced)\b/i, label: 'marital status' },
+      { pattern: /\b(?:gender\s*:\s*(?:male|female|other))\b/i, label: 'gender/sex' }
+    ];
+
+    sensitiveRegexes.forEach(item => {
+      if (item.pattern.test(resumeText)) {
+        score -= 5;
+        issues.push({
+          severity: 'warning',
+          category: 'format',
+          message: `Resume contains sensitive personal information (${item.label})`,
+          fix: 'Remove date of birth, marital status, and gender details to prevent unconscious bias under Australian hiring standards.'
+        });
+      }
+    });
+
+    // 2. Check for placeholder text (brackets, dummy details)
+    const placeholderRegexes = [
+      { pattern: /your-email@|email@domain|placeholder@/i, label: 'placeholder email' },
+      { pattern: /\b(?:0000\s*000\s*000|1234567890|0400\s*000\s*000)\b/, label: 'placeholder phone' },
+      { pattern: /\[\s*(?:insert|your|company|name|phone|email|date)[^\]]*\]/i, label: 'bracketed placeholder' }
+    ];
+
+    placeholderRegexes.forEach(item => {
+      if (item.pattern.test(resumeText)) {
+        score -= 5;
+        issues.push({
+          severity: 'warning',
+          category: 'format',
+          message: `Resume contains placeholder text (${item.label})`,
+          fix: 'Replace all placeholder brackets and template details with your actual personal details.'
+        });
+      }
+    });
+
+    // 3. Check for work experience timeline chronological order (reverse chronological)
+    const expHeaders = [/experience/i, /work history/i, /employment/i, /career history/i];
+    let expStartIndex = -1;
+    for (const regex of expHeaders) {
+      const match = resumeText.match(regex);
+      if (match && match.index !== undefined) {
+        expStartIndex = match.index;
+        break;
+      }
+    }
+
+    if (expStartIndex !== -1) {
+      // Find the end of experience section (next major heading)
+      let expEndIndex = resumeText.length;
+      const nextHeaders = [/education/i, /skills/i, /qualification/i, /certification/i, /reference/i];
+      for (const regex of nextHeaders) {
+        const match = resumeText.match(regex);
+        if (match && match.index !== undefined && match.index > expStartIndex) {
+          if (match.index < expEndIndex) {
+            expEndIndex = match.index;
+          }
+        }
+      }
+
+      const expSection = resumeText.substring(expStartIndex, expEndIndex);
+      
+      // Regex to match date ranges: Month Year - EndDate or Year - EndDate
+      const rangeRegex = /\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)?\s*(19\d{2}|20\d{2})\s*(?:-|–|to)\s*(?:present|current|now|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)?\s*(?:19\d{2}|20\d{2}))\b/gi;
+      
+      const startYears: number[] = [];
+      let match;
+      rangeRegex.lastIndex = 0;
+      while ((match = rangeRegex.exec(expSection)) !== null) {
+        if (match[1]) {
+          startYears.push(parseInt(match[1], 10));
+        }
+      }
+
+      if (startYears.length >= 2) {
+        let isDescending = true;
+        for (let i = 0; i < startYears.length - 1; i++) {
+          if (startYears[i] < startYears[i + 1]) {
+            isDescending = false;
+            break;
+          }
+        }
+
+        if (!isDescending) {
+          score -= 10;
+          issues.push({
+            severity: 'warning',
+            category: 'format',
+            message: 'Work experience is not in reverse chronological order',
+            fix: 'Rearrange your professional history so that your most recent role is listed at the top.'
+          });
+        }
+      }
+    }
+
     return Math.max(0, score);
   }
 }

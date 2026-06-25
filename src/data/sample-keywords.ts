@@ -64,6 +64,52 @@ export const SAMPLE_KEYWORDS: Record<string, KeywordCategory> = {
     ]
   },
 
+  // Finance & Accounting (15 keywords)
+  finance: {
+    name: 'Finance & Accounting',
+    keywords: [
+      'Financial Analysis', 'Xero', 'MYOB', 'Taxation', 'Auditing',
+      'Bookkeeping', 'Accounts Payable', 'Accounts Receivable', 'BAS',
+      'CPA', 'CA Qualification', 'Reconciliation', 'Budgeting',
+      'Compliance', 'Financial Reporting'
+    ]
+  },
+
+  // Education & Training (15 keywords)
+  education: {
+    name: 'Education & Training',
+    keywords: [
+      'Curriculum Development', 'Lesson Planning', 'Classroom Management',
+      'Pedagogy', 'Student Assessment', 'Special Education', 'EAL/D',
+      'VIT', 'NESA', 'Early Childhood', 'Child Safety standards',
+      'Working With Children Check', 'WWCC', 'First Aid', 'Student Engagement'
+    ]
+  },
+
+  // Engineering & Construction (15 keywords)
+  engineering: {
+    name: 'Engineering & Construction',
+    keywords: [
+      'AutoCAD', 'BIM', 'Civil Engineering', 'Structural Design',
+      'Site Supervision', 'Project Estimation', 'Safety Compliance',
+      'Quality Control', 'Contract Administration', 'Subcontractor Management',
+      'AS3000', 'Building Codes', 'Project Scheduling', 'Feasibility Studies',
+      'Environmental Impact'
+    ]
+  },
+
+  // Hospitality & Customer Service (15 keywords)
+  hospitality: {
+    name: 'Hospitality & Customer Service',
+    keywords: [
+      'Customer Service', 'RSA Certificate', 'Responsible Service of Alcohol',
+      'RCG', 'Point of Sale', 'POS systems', 'Food Safety Standards',
+      'Event Management', 'Conflict Resolution', 'Stock Control',
+      'Barista skills', 'Front of House', 'Guest Relations', 'Order Taking',
+      'Food Hygiene'
+    ]
+  },
+
   // Soft Skills (10 keywords)
   softSkills: {
     name: 'Soft Skills',

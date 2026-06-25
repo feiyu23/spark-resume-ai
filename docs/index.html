@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume AI Toolkit - ATS Score & AU Resume Formatter</title>
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Mammoth.js for client-side Word parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <!-- PDF.js for client-side PDF parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              900: '#4c1d95',
+            }
+          }
+        }
+      }
+    }
+    // Setup PDFJS worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+  </script>
+  
+  <style>
+    body {
+      background-color: #030712; /* slate-950 */
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+    }
+    .glass-panel {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .glass-input {
+      background: rgba(31, 41, 55, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-input:focus {
+      border-color: #8b5cf6;
+      box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+      outline: none;
+    }
+  </style>
+</head>
+<body class="text-slate-200 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+  
+  <!-- Navigation Header -->
+  <header class="border-b border-slate-900 bg-slate-950/40 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
+          <i class="fa-solid fa-graduation-cap text-lg text-white"></i>
+        </div>
+        <div>
+          <span class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-brand-400">Resume AI Toolkit</span>
+          <span class="ml-2 px-2 py-0.5 text-[10px] tracking-wider uppercase font-semibold text-brand-400 bg-brand-500/10 rounded-full border border-brand-500/20">Open Source</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a href="https://github.com/feiyu23/spark-resume-ai" target="_blank" class="text-sm font-medium text-slate-400 hover:text-white transition-colors duration-200">
+          <i class="fa-brands fa-github text-lg mr-1.5 align-middle"></i>GitHub
+        </a>
+        <a href="https://store.ozsparkhub.com.au/tools/resume-optimizer" target="_blank" class="px-4 py-2 text-xs font-semibold tracking-wide text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 rounded-lg shadow-lg shadow-brand-500/25 transition-all duration-200 transform hover:-translate-y-0.5">
+          Try Premium <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-[10px]"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+    
+    <!-- Hero Header -->
+    <div class="text-center max-w-3xl mx-auto mb-12">
+      <h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-4 leading-tight">
+        Optimize Your Resume for the <span class="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 to-indigo-400">Australian Job Market</span>
+      </h1>
+      <p class="text-lg text-slate-400">
+        Parse documents locally in your browser, check ATS compatibility scoring, extract key technology terms, and format resumes into professional Australian standards.
+      </p>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="flex justify-center mb-8">
+      <div class="flex space-x-1 p-1 bg-slate-900/60 backdrop-blur border border-slate-800 rounded-xl">
+        <button id="tab-analyzer" class="px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 text-white bg-brand-600 shadow" onclick="switchMode('analyzer')">
+          <i class="fa-solid fa-magnifying-glass-chart mr-2"></i>ATS Analyzer
+        </button>
+        <button id="tab-builder" class="px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-slate-200" onclick="switchMode('builder')">
+          <i class="fa-solid fa-file-invoice mr-2"></i>AU Resume Builder
+        </button>
+      </div>
+    </div>
+
+    <!-- Mode 1: ATS Analyzer -->
+    <div id="mode-analyzer" class="space-y-8 animate-fadeIn">
+      
+      <!-- Input Panel Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Resume File Input & Text Area -->
+        <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-lg font-bold text-white flex items-center">
+                <i class="fa-solid fa-file-lines text-brand-400 mr-2"></i>1. Paste or Upload Resume
+              </h2>
+              <span id="word-count-badge" class="text-xs text-slate-500">0 words</span>
+            </div>
+            
+            <!-- File Drag and Drop -->
+            <div id="drop-zone" class="border-2 border-dashed border-slate-800 hover:border-brand-500/50 transition-colors duration-200 rounded-xl p-5 mb-4 text-center cursor-pointer bg-slate-950/20 relative">
+              <input type="file" id="file-uploader" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf,.docx,.txt">
+              <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-500 mb-2"></i>
+              <p class="text-sm font-medium text-slate-300">Drag & Drop PDF, Word (.docx) or Text (.txt)</p>
+              <p class="text-xs text-slate-500 mt-1">Processed securely 100% locally in your browser</p>
+              <div id="file-status" class="hidden mt-2 p-1.5 rounded bg-brand-500/10 border border-brand-500/20 text-xs font-semibold text-brand-400"></div>
+            </div>
+
+            <!-- Resume Text Area -->
+            <textarea id="resume-text" placeholder="Or paste raw resume text details here..." class="w-full h-64 glass-input rounded-xl p-4 text-sm text-slate-300 font-mono resize-none focus:ring-2 focus:ring-brand-500" oninput="updateWordCount()"></textarea>
+          </div>
+        </div>
+
+        <!-- Job Description Input -->
+        <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-white mb-4 flex items-center">
+              <i class="fa-solid fa-bullhorn text-brand-400 mr-2"></i>2. Target Job Description
+            </h2>
+            <textarea id="jd-text" placeholder="Paste the job description (responsibilities, requirements, skills) here to match against..." class="w-full h-80 glass-input rounded-xl p-4 text-sm text-slate-300 font-mono resize-none focus:ring-2 focus:ring-brand-500"></textarea>
+          </div>
+          
+          <button onclick="runAnalysis()" class="w-full mt-4 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-brand-500/25 transition-all duration-200 transform hover:-translate-y-0.5 flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Calculate ATS Compatibility</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Loading Indicator -->
+      <div id="loading" class="hidden flex-col items-center justify-center py-10 space-y-4">
+        <div class="w-12 h-12 rounded-full border-4 border-slate-800 border-t-brand-500 animate-spin"></div>
+        <p class="text-sm font-semibold text-brand-400">Analyzing resume content locally...</p>
+      </div>
+
+      <!-- Output Results Panel -->
+      <div id="results-panel" class="hidden space-y-8 animate-fadeIn">
+        
+        <!-- Score Overview Dashboard -->
+        <div class="glass-panel p-6 rounded-2xl grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
+          
+          <!-- Gauge Card -->
+          <div class="flex flex-col items-center justify-center p-4 border-r border-slate-800/50">
+            <span class="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">Overall Score</span>
+            <div class="relative w-36 h-36 flex items-center justify-center">
+              <!-- Circle SVG -->
+              <svg class="absolute w-full h-full transform -rotate-90">
+                <circle cx="72" cy="72" r="60" stroke="#1f2937" stroke-width="10" fill="transparent"/>
+                <circle id="score-gauge" cx="72" cy="72" r="60" stroke="#8b5cf6" stroke-dasharray="377" stroke-dashoffset="377" stroke-width="10" fill="transparent" stroke-linecap="round" class="transition-all duration-1000 ease-out"/>
+              </svg>
+              <div class="text-center z-10">
+                <span id="score-value" class="text-3xl font-extrabold text-white">0</span>
+                <span class="text-sm text-slate-500">/100</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Breakdown Progress Card -->
+          <div class="md:col-span-3 space-y-4 p-2">
+            <h3 class="text-md font-bold text-white mb-2 uppercase tracking-wide">Dimension Breakdowns</h3>
+            
+            <!-- Keyword Match Bar -->
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-slate-400">Keyword Optimization (30% weight)</span>
+                <span id="breakdown-keyword" class="text-white">0%</span>
+              </div>
+              <div class="w-full bg-slate-900 rounded-full h-2">
+                <div id="breakdown-keyword-bar" class="bg-brand-500 h-2 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Format Score Bar -->
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-slate-400">Format & Structure (35% weight)</span>
+                <span id="breakdown-format" class="text-white">0%</span>
+              </div>
+              <div class="w-full bg-slate-900 rounded-full h-2">
+                <div id="breakdown-format-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Semantic Similarity Bar -->
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-slate-400">Semantic Relevance (35% weight)</span>
+                <span id="breakdown-semantic" class="text-white">0%</span>
+              </div>
+              <div class="w-full bg-slate-900 rounded-full h-2">
+                <div id="breakdown-semantic-bar" class="bg-violet-500 h-2 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Issues and Recommendations List -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          <!-- Format Issues Panel -->
+          <div class="glass-panel p-6 rounded-2xl">
+            <h3 class="text-md font-bold text-white mb-4 uppercase tracking-wide flex items-center">
+              <i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i>Formatting & Anti-Bias Issues
+            </h3>
+            <div id="issues-list" class="space-y-4 max-h-[420px] overflow-y-auto pr-2">
+              <!-- Issue Cards Rendered Here -->
+            </div>
+          </div>
+
+          <!-- Keyword Analysis Panel -->
+          <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+            <div>
+              <h3 class="text-md font-bold text-white mb-4 uppercase tracking-wide flex items-center">
+                <i class="fa-solid fa-key text-brand-400 mr-2"></i>Missing Target Keywords
+              </h3>
+              <p class="text-xs text-slate-400 mb-3">Add these industry and tech keywords to your resume profile to increase ATS matching:</p>
+              <div id="keywords-tags" class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-2 mb-4">
+                <!-- Keyword Tags Rendered Here -->
+              </div>
+            </div>
+            
+            <div class="p-4 rounded-xl bg-brand-500/5 border border-brand-500/10 text-xs text-brand-400/90 leading-relaxed">
+              <i class="fa-solid fa-circle-info mr-1 text-[11px] align-middle"></i>
+              <strong>Australian Tip</strong>: Do not copy-paste invisible keywords into the footer. List them contextually under your skills or highlights list.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- General Recommendations -->
+        <div class="glass-panel p-6 rounded-2xl">
+          <h3 class="text-md font-bold text-white mb-3 uppercase tracking-wide"><i class="fa-solid fa-wand-magic-sparkles text-indigo-400 mr-2"></i>Actionable Optimization Advice</h3>
+          <ul id="suggestions-list" class="list-disc pl-5 text-sm text-slate-300 space-y-2 leading-relaxed">
+            <!-- Suggestions Rendered Here -->
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Mode 2: AU Resume Builder Form -->
+    <div id="mode-builder" class="hidden space-y-8 animate-fadeIn">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Editor Input Form -->
+        <div class="glass-panel p-6 rounded-2xl space-y-6">
+          <h2 class="text-lg font-bold text-white pb-3 border-b border-slate-900"><i class="fa-solid fa-pen-to-square text-brand-400 mr-2"></i>Resume Content Creator</h2>
+          
+          <form id="builder-form" class="space-y-5" oninput="generatePreview()">
+            
+            <!-- Personal Info Section -->
+            <div class="space-y-3">
+              <h3 class="text-xs font-bold text-brand-400 uppercase tracking-widest">1. Personal Information</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input type="text" id="p-name" placeholder="Full Name" value="Jane Smith" class="glass-input px-3.5 py-2.5 rounded-lg text-sm w-full">
+                <input type="email" id="p-email" placeholder="Email Address" value="jane.smith@example.com" class="glass-input px-3.5 py-2.5 rounded-lg text-sm w-full">
+                <input type="tel" id="p-phone" placeholder="Mobile Phone" value="0412 345 678" class="glass-input px-3.5 py-2.5 rounded-lg text-sm w-full">
+                <input type="text" id="p-location" placeholder="Location (e.g. Sydney, NSW)" value="Sydney, NSW" class="glass-input px-3.5 py-2.5 rounded-lg text-sm w-full">
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input type="text" id="p-rights" placeholder="Work Rights (e.g. Permanent Resident)" value="Permanent Resident" class="glass-input px-3.5 py-2.5 rounded-lg text-sm w-full">
+                <input type="text" id="p-linkedin" placeholder="LinkedIn Profile URL" value="linkedin.com/in/janesmith" class="glass-input px-3.5 py-2.5 rounded-lg text-sm w-full">
+              </div>
+            </div>
+
+            <!-- Professional Summary -->
+            <div class="space-y-2">
+              <h3 class="text-xs font-bold text-brand-400 uppercase tracking-widest">2. Professional Summary</h3>
+              <textarea id="p-summary" rows="3" placeholder="A brief professional statement highlighting your experience, expertise, and how you add value to organizations..." class="glass-input px-3.5 py-2.5 rounded-lg text-sm w-full resize-y font-sans">A highly motivated and results-oriented Software Engineer with over 4 years of experience building scalable web applications. Proven track record of designing, developing, and deploying robust cloud infrastructures and responsive front-end applications.</textarea>
+            </div>
+
+            <!-- Key Skills -->
+            <div class="space-y-2">
+              <h3 class="text-xs font-bold text-brand-400 uppercase tracking-widest">3. Key Skills (Comma separated)</h3>
+              <input type="text" id="p-skills" placeholder="JavaScript, React, Node.js, AWS, SQL, Agile Scrum" value="JavaScript, TypeScript, React, Node.js, AWS, SQL, Agile Scrum, Git" class="glass-input px-3.5 py-2.5 rounded-lg text-sm w-full">
+            </div>
+
+            <!-- Work Experience -->
+            <div class="space-y-3">
+              <h3 class="text-xs font-bold text-brand-400 uppercase tracking-widest">4. Professional Experience</h3>
+              
+              <!-- Job Card 1 -->
+              <div class="p-3 bg-slate-950/40 border border-slate-900 rounded-xl space-y-2.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input type="text" id="job-role-1" placeholder="Job Title" value="Senior Developer" class="glass-input px-2.5 py-1.5 rounded text-xs w-full">
+                  <input type="text" id="job-company-1" placeholder="Company Name" value="Tech Solutions Pty Ltd" class="glass-input px-2.5 py-1.5 rounded text-xs w-full">
+                  <input type="text" id="job-date-1" placeholder="Dates (e.g. Jan 2021 – Present)" value="Jan 2021 – Present" class="glass-input px-2.5 py-1.5 rounded text-xs w-full">
+                  <input type="text" id="job-location-1" placeholder="Location" value="Sydney" class="glass-input px-2.5 py-1.5 rounded text-xs w-full">
+                </div>
+                <textarea id="job-bullets-1" rows="3" placeholder="Achievements (One per line)" class="glass-input px-2.5 py-1.5 rounded text-xs w-full resize-y font-sans">Led the development of a React dashboard which reduced page load times by 40%
+Architected AWS cloud services using S3 and ECS ensuring 99.99% uptime
+Mentored 3 junior developers and enforced high standards of unit testing coverage</textarea>
+              </div>
+
+              <!-- Job Card 2 -->
+              <div class="p-3 bg-slate-950/40 border border-slate-900 rounded-xl space-y-2.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input type="text" id="job-role-2" placeholder="Job Title" value="Software Developer" class="glass-input px-2.5 py-1.5 rounded text-xs w-full">
+                  <input type="text" id="job-company-2" placeholder="Company Name" value="Digital Spark" class="glass-input px-2.5 py-1.5 rounded text-xs w-full">
+                  <input type="text" id="job-date-2" placeholder="Dates (e.g. Jun 2018 – Dec 2020)" value="Jun 2018 – Dec 2020" class="glass-input px-2.5 py-1.5 rounded text-xs w-full">
+                  <input type="text" id="job-location-2" placeholder="Location" value="Sydney" class="glass-input px-2.5 py-1.5 rounded text-xs w-full">
+                </div>
+                <textarea id="job-bullets-2" rows="3" placeholder="Achievements (One per line)" class="glass-input px-2.5 py-1.5 rounded text-xs w-full resize-y font-sans">Developed secure REST APIs utilizing Node.js and Express
+Optimized PostgreSQL database queries improving retrieval speeds by 25%
+Assisted in migration from legacy servers to Docker containers</textarea>
+              </div>
+            </div>
+
+            <!-- Education -->
+            <div class="space-y-3">
+              <h3 class="text-xs font-bold text-brand-400 uppercase tracking-widest">5. Education</h3>
+              <div class="p-3 bg-slate-950/40 border border-slate-900 rounded-xl space-y-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input type="text" id="edu-degree" placeholder="Degree (e.g. Bachelor of CS)" value="Bachelor of Computer Science" class="glass-input px-2.5 py-1.5 rounded text-xs w-full">
+                  <input type="text" id="edu-major" placeholder="Major / Specialization" value="Software Engineering" class="glass-input px-2.5 py-1.5 rounded text-xs w-full">
+                  <input type="text" id="edu-inst" placeholder="Institution" value="University of Sydney" class="glass-input px-2.5 py-1.5 rounded text-xs w-full">
+                  <input type="text" id="edu-year" placeholder="Graduation Year" value="2018" class="glass-input px-2.5 py-1.5 rounded text-xs w-full">
+                </div>
+              </div>
+            </div>
+
+            <!-- Certifications -->
+            <div class="space-y-2">
+              <h3 class="text-xs font-bold text-brand-400 uppercase tracking-widest">6. Certifications (One per line)</h3>
+              <textarea id="p-certs" rows="2" placeholder="Certification Name – Issuer (Year)" class="glass-input px-3.5 py-2.5 rounded-lg text-sm w-full resize-y font-sans">AWS Certified Solutions Architect – Amazon Web Services (2022)
+Scrum Alliance Certified ScrumMaster – Scrum Alliance (2021)</textarea>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- Markdown Resume Live Preview -->
+        <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between h-fit">
+          <div class="space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-900">
+              <h2 class="text-lg font-bold text-white flex items-center">
+                <i class="fa-brands fa-markdown text-brand-400 mr-2 text-xl"></i>Formatted AU Standard Markdown
+              </h2>
+              <div class="flex space-x-2">
+                <button onclick="copyToClipboard()" class="px-3 py-1.5 text-xs font-semibold rounded bg-slate-800 hover:bg-slate-700 text-white transition-colors duration-200">
+                  <i class="fa-solid fa-copy mr-1"></i>Copy
+                </button>
+                <button onclick="downloadMarkdown()" class="px-3 py-1.5 text-xs font-semibold rounded bg-brand-600 hover:bg-brand-500 text-white transition-colors duration-200">
+                  <i class="fa-solid fa-download mr-1"></i>Download
+                </button>
+              </div>
+            </div>
+            
+            <textarea id="markdown-preview" readonly class="w-full h-[620px] bg-slate-950 border border-slate-900 rounded-xl p-4 text-xs font-mono text-slate-300 resize-none outline-none leading-relaxed"></textarea>
+          </div>
+
+          <p class="text-[11px] text-slate-500 mt-4 text-center leading-relaxed">
+            <i class="fa-solid fa-shield-halved mr-1"></i>
+            This builder outputs pure Markdown containing structural formatting. Save it as `.md` or convert to PDF for submission.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-900 bg-slate-950/60 py-6 mt-16 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-2">
+      <p>Made with 🦊 by <a href="https://www.ozsparkhub.com.au" target="_blank" class="text-slate-400 hover:text-white transition-colors duration-200">OzSparkHub</a> – Empowering job seekers in Australia since 2005</p>
+      <p>&copy; 2026 OzSparkHub. Licensed under the MIT License.</p>
+    </div>
+  </footer>
+
+  <!-- Embedded Client-Side JavaScript Logic -->
+  <script>
+    // Tab/Mode switcher
+    function switchMode(mode) {
+      const activeBtn = 'px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 text-white bg-brand-600 shadow';
+      const inactiveBtn = 'px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-slate-200';
+      
+      const tabAnalyzer = document.getElementById('tab-analyzer');
+      const tabBuilder = document.getElementById('tab-builder');
+      
+      const modeAnalyzer = document.getElementById('mode-analyzer');
+      const modeBuilder = document.getElementById('mode-builder');
+      
+      if (mode === 'analyzer') {
+        tabAnalyzer.className = activeBtn;
+        tabBuilder.className = inactiveBtn;
+        modeAnalyzer.classList.remove('hidden');
+        modeBuilder.classList.add('hidden');
+      } else {
+        tabAnalyzer.className = inactiveBtn;
+        tabBuilder.className = activeBtn;
+        modeAnalyzer.classList.add('hidden');
+        modeBuilder.classList.remove('hidden');
+        generatePreview(); // populate preview initial
+      }
+    }
+
+    // Update word count indicator
+    function updateWordCount() {
+      const text = document.getElementById('resume-text').value;
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      document.getElementById('word-count-badge').innerText = `${words} words`;
+    }
+
+    // Client-side text parsing for uploader
+    const fileUploader = document.getElementById('file-uploader');
+    const dropZone = document.getElementById('drop-zone');
+    const fileStatus = document.getElementById('file-status');
+    const resumeTextarea = document.getElementById('resume-text');
+
+    fileUploader.addEventListener('change', handleFileSelect);
+    
+    // Highlight drop zone
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, e => {
+        e.preventDefault();
+        dropZone.classList.add('border-brand-500/80', 'bg-brand-500/5');
+      }, false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, e => {
+        e.preventDefault();
+        dropZone.classList.remove('border-brand-500/80', 'bg-brand-500/5');
+      }, false);
+    });
+    dropZone.addEventListener('drop', e => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length > 0) {
+        fileUploader.files = files;
+        handleFileSelect({ target: fileUploader });
+      }
+    });
+
+    async function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      fileStatus.innerText = `File selected: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+      fileStatus.classList.remove('hidden');
+
+      // Check file size (limit 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size exceeds 10MB limit');
+        return;
+      }
+
+      const name = file.name.toLowerCase();
+      try {
+        if (name.endsWith('.txt')) {
+          const text = await file.text();
+          setResumeText(text);
+        } else if (name.endsWith('.docx')) {
+          const reader = new FileReader();
+          reader.onload = async function (event) {
+            const arrayBuffer = event.target.result;
+            const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+            setResumeText(result.value);
+          };
+          reader.readAsArrayBuffer(file);
+        } else if (name.endsWith('.pdf')) {
+          const reader = new FileReader();
+          reader.onload = async function () {
+            const typedarray = new Uint8Array(this.result);
+            const pdf = await pdfjsLib.getDocument(typedarray).promise;
+            let text = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const content = await page.getTextContent();
+              const strings = content.items.map(item => item.str);
+              text += strings.join(' ') + '\n';
+            }
+            setResumeText(text);
+          };
+          reader.readAsArrayBuffer(file);
+        } else {
+          alert('Unsupported file format. Please upload PDF, DOCX or TXT.');
+        }
+      } catch (err) {
+        alert(`Failed to parse file: ${err.message}`);
+      }
+    }
+
+    function setResumeText(text) {
+      // Clean text
+      const clean = text
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+      
+      resumeTextarea.value = clean;
+      updateWordCount();
+    }
+
+    // --- Scoring Engine JavaScript Port ---
+    function runAnalysis() {
+      const resume = resumeTextarea.value.trim();
+      const jd = document.getElementById('jd-text').value.trim();
+      
+      if (!resume) {
+        alert('Please paste or upload your resume text.');
+        return;
+      }
+      if (!jd) {
+        alert('Please paste a target job description.');
+        return;
+      }
+
+      // Show loader
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('results-panel').classList.add('hidden');
+
+      setTimeout(() => {
+        const result = scoreResume(resume, jd);
+        renderResults(result);
+        
+        // Hide loader
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('results-panel').classList.remove('hidden');
+        document.getElementById('results-panel').scrollIntoView({ behavior: 'smooth' });
+      }, 500);
+    }
+
+    function renderResults(result) {
+      // Overall gauge animation
+      const value = result.overall;
+      document.getElementById('score-value').innerText = value;
+      const offset = 377 - (377 * value) / 100;
+      document.getElementById('score-gauge').style.strokeDashoffset = offset;
+
+      // Color coding gauge
+      let color = '#ef4444'; // red-500
+      if (value >= 70) color = '#22c55e'; // green-500
+      else if (value >= 40) color = '#eab308'; // yellow-500
+      document.getElementById('score-gauge').setAttribute('stroke', color);
+
+      // Breakdowns
+      document.getElementById('breakdown-keyword').innerText = `${result.breakdown.keywordMatch}%`;
+      document.getElementById('breakdown-keyword-bar').style.width = `${result.breakdown.keywordMatch}%`;
+      
+      document.getElementById('breakdown-format').innerText = `${result.breakdown.formatScore}%`;
+      document.getElementById('breakdown-format-bar').style.width = `${result.breakdown.formatScore}%`;
+      
+      document.getElementById('breakdown-semantic').innerText = `${result.breakdown.semanticSimilarity}%`;
+      document.getElementById('breakdown-semantic-bar').style.width = `${result.breakdown.semanticSimilarity}%`;
+
+      // Issue List Rendering
+      const issuesList = document.getElementById('issues-list');
+      issuesList.innerHTML = '';
+      if (result.issues.length === 0) {
+        issuesList.innerHTML = `
+          <div class="flex items-center space-x-3 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400">
+            <i class="fa-solid fa-circle-check text-xl"></i>
+            <div>
+              <p class="text-sm font-semibold">Perfect Structural Format!</p>
+              <p class="text-xs text-green-500">Your resume follows all essential structure and anti-bias standards.</p>
+            </div>
+          </div>`;
+      } else {
+        result.issues.forEach(issue => {
+          const colorClass = issue.severity === 'critical' ? 'red' : 'yellow';
+          const icon = issue.severity === 'critical' ? 'fa-solid fa-circle-xmark' : 'fa-solid fa-triangle-exclamation';
+          issuesList.innerHTML += `
+            <div class="p-4 rounded-xl bg-${colorClass}-500/5 border border-${colorClass}-500/10 flex items-start space-x-3">
+              <i class="${icon} text-${colorClass}-500 text-lg mt-0.5"></i>
+              <div class="space-y-1">
+                <span class="text-[10px] tracking-wider uppercase font-semibold text-${colorClass}-500">${issue.category} &bull; ${issue.severity}</span>
+                <p class="text-sm font-bold text-white leading-tight">${issue.message}</p>
+                <p class="text-xs text-slate-400">${issue.fix}</p>
+              </div>
+            </div>`;
+        });
+      }
+
+      // Keyword tags rendering
+      const tagsContainer = document.getElementById('keywords-tags');
+      tagsContainer.innerHTML = '';
+      if (result.keywords.missing.length === 0) {
+        tagsContainer.innerHTML = `<span class="text-xs text-green-400 font-semibold"><i class="fa-solid fa-circle-check mr-1"></i>You matched 100% of keywords!</span>`;
+      } else {
+        result.keywords.missing.forEach(tag => {
+          tagsContainer.innerHTML += `
+            <span class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-300 transition-colors duration-200">
+              <i class="fa-solid fa-plus text-brand-500 mr-1"></i>${tag}
+            </span>`;
+        });
+      }
+
+      // Suggestions rendering
+      const suggestionsList = document.getElementById('suggestions-list');
+      suggestionsList.innerHTML = '';
+      
+      const allSuggestions = [
+        ...result.suggestions,
+        ...result.issues.map(i => i.fix),
+        'Make sure to quantify achievements (e.g. saving money, scaling systems, leading operations).'
+      ];
+      
+      const uniqueSuggestions = Array.from(new Set(allSuggestions)).slice(0, 5);
+      uniqueSuggestions.forEach(sug => {
+        suggestionsList.innerHTML += `<li>${sug}</li>`;
+      });
+    }
+
+    // --- Core Scorer JavaScript Port ---
+    function scoreResume(resumeText, jobDescription) {
+      const keywords = extractKeywords(jobDescription);
+      const keywordResult = matchKeywords(resumeText, keywords);
+      const formatResult = analyzeFormat(resumeText);
+      const similarity = calculateSimilarity(resumeText, jobDescription);
+
+      const overall = Math.round(
+        keywordResult.matchScore * 0.30 +
+        formatResult.score * 0.35 +
+        similarity.percentageScore * 0.35
+      );
+
+      const suggestions = [...formatResult.suggestions];
+      if (overall < 70) {
+        suggestions.push('Add more industry-specific terms found in the job description.');
+        suggestions.push('Ensure the document layout uses standard margins and avoids complex graphical grids.');
+      }
+
+      return {
+        overall,
+        breakdown: {
+          keywordMatch: keywordResult.matchScore,
+          formatScore: formatResult.score,
+          semanticSimilarity: similarity.percentageScore
+        },
+        keywords: keywordResult,
+        similarity,
+        issues: formatResult.issues,
+        suggestions
+      };
+    }
+
+    // --- Live Resume Preview & Format Generator ---
+    function generatePreview() {
+      const name = document.getElementById('p-name').value;
+      const email = document.getElementById('p-email').value;
+      const phone = document.getElementById('p-phone').value;
+      const location = document.getElementById('p-location').value;
+      const rights = document.getElementById('p-rights').value;
+      const linkedin = document.getElementById('p-linkedin').value;
+      const summary = document.getElementById('p-summary').value;
+      
+      // Skills
+      const skills = document.getElementById('p-skills').value
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s);
+
+      // Work Experience 1
+      const role1 = document.getElementById('job-role-1').value;
+      const company1 = document.getElementById('job-company-1').value;
+      const date1 = document.getElementById('job-date-1').value;
+      const loc1 = document.getElementById('job-location-1').value;
+      const bullets1 = document.getElementById('job-bullets-1').value.split('\n').filter(b => b.trim());
+
+      // Work Experience 2
+      const role2 = document.getElementById('job-role-2').value;
+      const company2 = document.getElementById('job-company-2').value;
+      const date2 = document.getElementById('job-date-2').value;
+      const loc2 = document.getElementById('job-location-2').value;
+      const bullets2 = document.getElementById('job-bullets-2').value.split('\n').filter(b => b.trim());
+
+      // Education
+      const degree = document.getElementById('edu-degree').value;
+      const major = document.getElementById('edu-major').value;
+      const inst = document.getElementById('edu-inst').value;
+      const year = document.getElementById('edu-year').value;
+
+      // Certifications
+      const certs = document.getElementById('p-certs').value.split('\n').filter(c => c.trim());
+
+      // Assemble Markdown
+      let md = `# ${name.toUpperCase()}\n`;
+      
+      const contact = [email, phone, location];
+      if (rights) contact.push(`Work Status: ${rights}`);
+      md += contact.join('  |  ') + '\n';
+      
+      if (linkedin) md += `LinkedIn: ${linkedin}\n`;
+      md += '\n---\n\n## PROFESSIONAL SUMMARY\n' + summary + '\n\n';
+
+      if (skills.length > 0) {
+        md += '## KEY SKILLS\n';
+        skills.forEach(s => md += `* ${s}\n`);
+        md += '\n';
+      }
+
+      md += '## PROFESSIONAL EXPERIENCE\n';
+      
+      // Exp 1
+      if (role1 || company1) {
+        md += `### ${role1} | ${company1}\n`;
+        md += `*${date1} ${loc1 ? '| ' + loc1 : ''}*\n\n`;
+        bullets1.forEach(b => md += `* ${b}\n`);
+        md += '\n';
+      }
+
+      // Exp 2
+      if (role2 || company2) {
+        md += `### ${role2} | ${company2}\n`;
+        md += `*${date2} ${loc2 ? '| ' + loc2 : ''}*\n\n`;
+        bullets2.forEach(b => md += `* ${b}\n`);
+        md += '\n';
+      }
+
+      // Education
+      if (degree || inst) {
+        md += '## EDUCATION\n';
+        md += `### ${degree}${major ? ', ' + major : ''}\n`;
+        md += `*${inst} (${year})*\n\n`;
+      }
+
+      // Certs
+      if (certs.length > 0) {
+        md += '## CERTIFICATIONS\n';
+        certs.forEach(c => md += `* ${c}\n`);
+      }
+
+      document.getElementById('markdown-preview').value = md.trim() + '\n';
+    }
+
+    // Helper functions
+    function copyToClipboard() {
+      const textarea = document.getElementById('markdown-preview');
+      textarea.select();
+      document.execCommand('copy');
+      alert('Markdown resume copied to clipboard!');
+    }
+
+    function downloadMarkdown() {
+      const content = document.getElementById('markdown-preview').value;
+      const blob = new Blob([content], { type: 'text/markdown;charset=utf-8;' });
+      const link = document.createElement('a');
+      const name = document.getElementById('p-name').value.replace(/\s+/g, '_').toLowerCase();
+      
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `${name}_australian_resume.md`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>

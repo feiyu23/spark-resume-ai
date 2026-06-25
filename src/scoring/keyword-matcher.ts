@@ -23,8 +23,12 @@ export class KeywordMatcher {
 
     keywords.forEach(keyword => {
       const normalizedKeyword = this.normalizeText(keyword);
+      if (!normalizedKeyword) return;
 
-      if (normalizedResume.includes(normalizedKeyword)) {
+      const escaped = normalizedKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(?:^|[^a-z0-9+#])${escaped}(?![a-z0-9+#])`, 'i');
+
+      if (regex.test(normalizedResume)) {
         found.push(keyword);
       } else {
         missing.push(keyword);
@@ -92,7 +96,7 @@ export class KeywordMatcher {
   private normalizeText(text: string): string {
     return text
       .toLowerCase()
-      .replace(/[^a-z0-9\s.]/g, ' ')
+      .replace(/[^a-z0-9\s+#.]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
   }
@@ -102,14 +106,19 @@ export class KeywordMatcher {
    */
   private isCommonWord(word: string): boolean {
     const commonWords = new Set([
-      'The', 'This', 'That', 'These', 'Those',
-      'And', 'But', 'Or', 'For', 'Nor',
-      'Your', 'Our', 'Their', 'Must', 'Will',
-      'Should', 'Would', 'Could', 'May', 'Might',
-      'Have', 'Has', 'Had', 'Do', 'Does', 'Did',
-      'Is', 'Are', 'Was', 'Were', 'Been', 'Being'
+      'the', 'this', 'that', 'these', 'those',
+      'and', 'but', 'or', 'for', 'nor',
+      'your', 'our', 'their', 'must', 'will',
+      'should', 'would', 'could', 'may', 'might',
+      'have', 'has', 'had', 'do', 'does', 'did',
+      'is', 'are', 'was', 'were', 'been', 'being',
+      'looking', 'senior', 'junior', 'experience', 'developer',
+      'engineer', 'role', 'team', 'work', 'skills', 'ability',
+      'knowledge', 'with', 'from', 'about', 'join', 'company',
+      'highly', 'motivated', 'seeking', 'position', 'requirements',
+      'strong', 'excellent', 'successful', 'key', 'good', 'new', 'years'
     ]);
-    return commonWords.has(word);
+    return commonWords.has(word.toLowerCase());
   }
 }
 

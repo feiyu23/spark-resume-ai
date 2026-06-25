@@ -45,5 +45,15 @@ export {
   KeywordCategory
 } from './data/sample-keywords';
 
+// Export templates
+export {
+  AustralianTemplate,
+  ResumeData,
+  PersonalDetails,
+  WorkExperience,
+  Education,
+  Certification
+} from './templates';
+
 // Package version
 export const VERSION = '0.1.0';

@@ -49,11 +49,22 @@ export class CosineSimilarity {
    * Tokenize text into normalized terms
    */
   private tokenize(text: string): string[] {
+    const techWords = new Set(['go', 'c', 'r', 'c#', 'ai', 'ui', 'ux', 'ts', 'js', 'it', 'db', 'qa', 'ip', 'ml', 'os', 'pr']);
+
     return text
       .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/[^a-z0-9\s+#.]/g, ' ')
       .split(/\s+/)
-      .filter(token => token.length > 2) // Remove very short words
+      .map(token => {
+        if (token.endsWith('.') && token !== '.net') {
+          token = token.slice(0, -1);
+        }
+        if (token.startsWith('.') && token !== '.net') {
+          token = token.slice(1);
+        }
+        return token;
+      })
+      .filter(token => token.length > 2 || techWords.has(token))
       .filter(token => !this.isStopWord(token));
   }
 
@@ -72,7 +83,7 @@ export class CosineSimilarity {
     // Normalize by document length (TF)
     const totalTerms = tokens.length;
     vocabulary.forEach(term => {
-      const tf = (termFrequency.get(term) || 0) / totalTerms;
+      const tf = totalTerms === 0 ? 0 : (termFrequency.get(term) || 0) / totalTerms;
       vector.set(term, tf);
     });
 
