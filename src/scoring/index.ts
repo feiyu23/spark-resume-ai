@@ -22,3 +22,15 @@ export {
   calculateSimilarity,
   SimilarityResult
 } from './cosine-similarity';
+
+export {
+  ResumeTailor,
+  TailoredBullet,
+  TailorOptions
+} from './resume-tailor';
+
+export {
+  GapAnalyzer,
+  SkillGap,
+  GapAnalysisReport
+} from './gap-analyzer';

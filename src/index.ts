@@ -33,7 +33,13 @@ export {
   KeywordMatchResult,
   CosineSimilarity,
   calculateSimilarity,
-  SimilarityResult
+  SimilarityResult,
+  ResumeTailor,
+  TailoredBullet,
+  TailorOptions,
+  GapAnalyzer,
+  SkillGap,
+  GapAnalysisReport
 } from './scoring';
 
 // Export data

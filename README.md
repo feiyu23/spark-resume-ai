@@ -11,6 +11,8 @@
 - 📄 **Multi-format Parser**: PDF, Word (.docx), and plain text
 - 🎯 **ATS Scoring**: 3-dimension basic scoring (keyword match, format, semantic similarity)
 - 🔍 **Keyword Matching**: Cosine similarity-based keyword analysis
+- ✂️ **Resume Tailoring**: Relevance-weighted CV cutting to match job descriptions locally
+- 📈 **Skill Gap Analysis**: Actionable upskill planning based on missing keywords
 - 🇦🇺 **Australian Market**: Sample keywords and format templates for AU job market
 - ⚡ **Fast & Lightweight**: Zero external API dependencies for basic features
 - 🛠️ **Developer-Friendly**: TypeScript, well-documented, easy to integrate
@@ -127,6 +129,39 @@ const analysis = matcher.analyze(resumeText, industryKeywords);
 console.log(analysis.matchedKeywords);  // Keywords found in resume
 console.log(analysis.missingKeywords);  // Important keywords missing
 console.log(analysis.matchScore);       // 0-100 score
+```
+
+### Gap Analysis & Upskill Planning
+
+```typescript
+import { GapAnalyzer } from '@ozsparkhub/resume-ai-toolkit';
+
+const analyzer = new GapAnalyzer();
+const report = analyzer.analyze(analysis); // Pass in KeywordMatchResult
+
+console.log(report.overallRecommendation);
+// e.g. "You have gaps across multiple areas (Technology & IT, Soft Skills)..."
+
+report.gaps.forEach(gap => {
+  console.log(`${gap.categoryName}: Missing ${gap.missingSkills.join(', ')}`);
+  console.log(`Action: ${gap.recommendation}`);
+});
+```
+
+### Resume Tailoring (Relevance-weighted)
+
+Trim down a long master resume into the most relevant bullet points for a specific job:
+
+```typescript
+import { ResumeTailor } from '@ozsparkhub/resume-ai-toolkit';
+
+const tailor = new ResumeTailor();
+// Keep top 10 most relevant bullet points
+const tailoredBullets = tailor.tailor(masterResumeText, jobDescription, { maxBullets: 10 });
+
+tailoredBullets.forEach(bullet => {
+  console.log(`[Score: ${bullet.score.toFixed(2)}] ${bullet.cleanText}`);
+});
 ```
 
 ## 🇦🇺 Australian Resume Templates
