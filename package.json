@@ -1,6 +1,6 @@
 {
   "name": "@ozsparkhub/resume-ai-toolkit",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "description": "Open-source AI-powered resume analysis toolkit for Australian job market with ATS scoring, keyword matching, and format checking",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

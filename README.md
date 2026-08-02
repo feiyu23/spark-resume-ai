@@ -10,10 +10,11 @@
 
 - 📄 **Multi-format Parser**: PDF, Word (.docx), and plain text
 - 🎯 **ATS Scoring**: 3-dimension basic scoring (keyword match, format, semantic similarity)
+- 📐 **LaTeX & Typst Exporters**: Generate ATS-friendly `.tex` and modern `.typ` resume code
+- 🇺🇸 **US & AU Regional Templates**: Pre-configured Silicon Valley tech & Australian templates
 - 🔍 **Keyword Matching**: Cosine similarity-based keyword analysis
 - ✂️ **Resume Tailoring**: Relevance-weighted CV cutting to match job descriptions locally
 - 📈 **Skill Gap Analysis**: Actionable upskill planning based on missing keywords
-- 🇦🇺 **Australian Market**: Sample keywords and format templates for AU job market
 - ⚡ **Fast & Lightweight**: Zero external API dependencies for basic features
 - 🛠️ **Developer-Friendly**: TypeScript, well-documented, easy to integrate
 

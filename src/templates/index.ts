@@ -10,3 +10,5 @@ export {
   Education,
   Certification
 } from './australian-template';
+
+export { USTechTemplate } from './us-tech-template';

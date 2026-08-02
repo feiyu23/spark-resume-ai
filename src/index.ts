@@ -54,6 +54,7 @@ export {
 // Export templates
 export {
   AustralianTemplate,
+  USTechTemplate,
   ResumeData,
   PersonalDetails,
   WorkExperience,
@@ -61,5 +62,13 @@ export {
   Certification
 } from './templates';
 
+// Export exporters
+export {
+  LaTeXExporter,
+  LaTeXExporterOptions,
+  TypstExporter,
+  TypstExporterOptions
+} from './exporters';
+
 // Package version
-export const VERSION = '0.1.0';
+export const VERSION = '1.1.0';
